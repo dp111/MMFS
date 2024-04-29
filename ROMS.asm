@@ -142,12 +142,9 @@ ENDIF
 	INC &F6				; wF6=&8009
 	LDY #&1E
 	JSR Sub_AAC2_PrintRomStr
-	BCS Label_AAB7_rts		; If reached copyright offset
-	JSR PrintSpaceSPL
-	DEY
-	JSR Sub_AAC2_PrintRomStr
-.Label_AAB7_rts
-	RTS
+	BCS spare_rts		; If reached copyright offset
+	JSR PrintSpaceSPL	; C=0 on exit
+	BCC	DEY_Sub_AAC2_PrintRomStr
 
 .Label_AAB8_loop
 	CMP #&20
@@ -155,6 +152,7 @@ ENDIF
 	LDA #&20
 .Label_AABE
 	JSR PrintChrA
+.DEY_Sub_AAC2_PrintRomStr
 	DEY
 .Sub_AAC2_PrintRomStr
 	LDA &F6
@@ -162,7 +160,8 @@ ENDIF
 	BCS Label_AACE_rts		; If >=
 	JSR Sub_AACF_ReadRom
 	BNE Label_AAB8_loop
-	CLC 				; C=0=Terminator
+	CLC 					; C=0=Terminator
+.spare_rts
 .Label_AACE_rts
 	RTS
 
