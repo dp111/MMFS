@@ -10,7 +10,11 @@
 	JSR Sub_AAEA_StackAZero		; Change value of A in stack to 0?
 	LDA #&0F
 	STA &AA
-	JSR Sub_AADD_RomTablePtrBA
+	JSR RememberXYonly
+	LDA #&AA			; ROM information table @ XY
+	JSR osbyte_X0YFF
+	STX &B4
+	STY &B5
 	SEC
 	JSR GSINIT
 	STY &AB
@@ -172,14 +176,6 @@ ENDIF
 	PLA
 	TAY
 	TXA
-	RTS
-
-.Sub_AADD_RomTablePtrBA
-	JSR RememberXYonly
-	LDA #&AA			; ROM information table @ XY
-	JSR osbyte_X0YFF
-	STX &B4
-	STY &B5
 	RTS
 
 .Sub_AAEA_StackAZero
