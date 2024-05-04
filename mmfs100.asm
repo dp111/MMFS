@@ -2119,8 +2119,7 @@ IF _MM32_
 	LDA &C0
 	STA OWCtlBlock+11
 
-	JSR OW7F_Execute
-	JSR ReportIfDiskFault
+	JSR OW7F_Execute_and_ReportIfDiskFault
 
 	LDA #1
 	RTS
@@ -6939,8 +6938,7 @@ IF _MM32_
 	PLA
 	STA OWCtlBlock+6
 
-	JSR OW7F_Execute
-	JSR ReportIfDiskFault
+	JSR OW7F_Execute_and_ReportIfDiskFault
 
 	LDA CurrentDrv
 	STA CurrentCat
@@ -6975,7 +6973,8 @@ IF _MM32_
 	RTS
 }
 
-
+.OW7F_Execute_and_ReportIfDiskFault
+	JSR OW7F_Execute
 \\ Report 'disk fault'
 \\ On entry: A=FDC result, Z=1 if A=0
 .ReportIfDiskFault
