@@ -6388,7 +6388,10 @@ ENDIF
 	EQUB &FF
 	EQUS "Sum",0
 }
-
+IF NOT(_MM32_)
+.storeDRIVE_INDEX4_ResetCRC7
+	STA DRIVE_INDEX4,X
+ENDIF
 	\ Reset CHECK_CRC7
 .ResetCRC7
 	JSR RememberAXY
@@ -7296,8 +7299,7 @@ ENDIF
 	STA DRIVE_INDEX0,X
 	LDA &B9
 	ORA &B7	; Loaded
-	STA DRIVE_INDEX4,X
-	JMP ResetCRC7
+	JMP storeDRIVE_INDEX4_ResetCRC7
 }
 
 	\\ **** Calculate disk table sector ****
@@ -7978,8 +7980,7 @@ ENDIF
 	JSR CheckCRC7
 	LDX CurrentDrv
 	TXA
-	STA DRIVE_INDEX4,X
-	JMP ResetCRC7
+	JMP storeDRIVE_INDEX4_ResetCRC7
 
 	\\ *DCAT ((<f.dno>) <t.dno>) (<adsp>)
 dcEnd%=&A8	; last disk in range
