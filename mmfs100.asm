@@ -6126,7 +6126,6 @@ IF _INCLUDE_CMD_FREE_MAP_
 	SEC
 	SBC FilesX8
 	JSR Sub_A90D_freeinfo
-	JSR PrintStringSPL
 	EQUS "Free",13			; "Free"
 	LDA &C4
 	SEC
@@ -6137,7 +6136,6 @@ IF _INCLUDE_CMD_FREE_MAP_
 	TAY
 	LDA FilesX8
 	JSR Sub_A90D_freeinfo
-	JSR PrintStringSPL
 	EQUS "Used",13			; "Used"
 	NOP
 .Label_A8BD_rst
@@ -6243,7 +6241,7 @@ IF _INCLUDE_CMD_FREE_MAP_
 	JSR PrintStringSPL
 	EQUS " Bytes "
 	NOP
-	RTS
+	JMP PrintStringSPL
 }
 
 ENDIF
