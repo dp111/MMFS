@@ -127,12 +127,7 @@ ENDIF
 	LDA #&29			; A=")"
 	JSR PrintChrA
 	JSR PrintSpaceSPL
-	JSR Label_AA9A_PrtRomTitle
-	JSR PrintNewLine
-	SEC
-	RTS
 
-.Label_AA9A_PrtRomTitle
 	LDA #&07			; Print ROM title
 	STA &F6
 	LDA #&80
@@ -163,6 +158,9 @@ ENDIF
 	CLC 					; C=0=Terminator
 .spare_rts
 .Label_AACE_rts
+
+	JSR PrintNewLine
+	SEC
 	RTS
 
 .Sub_AACF_ReadRom
