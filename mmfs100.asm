@@ -6496,18 +6496,6 @@ ENDIF
 	BMI errReadOnly
 	RTS
 
-	\\ *** Set word &B8 to disk in current drive ***
-	\\ Check: C=0 drive loaded with formatted disk
-	\\        C=1 drive loaded with unformatted disk
-.SetCurrentDiskC
-	JSR chkdrv1
-	LDA DRIVE_INDEX0,X
-	STA &B8
-	LDA DRIVE_INDEX4,X
-	MASK_DISKNO
-	STA &B9
-	RTS
-
 	\\ * Check drive loaded with formatted disk *
 .CheckCurDrvFormatted
 	CLC
@@ -7208,8 +7196,16 @@ ENDIF
 .GetDriveStatus
 	CLC				; check loaded with formatted disk
 .GetDriveStatusC
-	JSR SetCurrentDiskC
-
+	\\ *** Set word &B8 to disk in current drive ***
+	\\ Check: C=0 drive loaded with formatted disk
+	\\        C=1 drive loaded with unformatted disk
+;.SetCurrentDiskC
+	JSR chkdrv1
+	LDA DRIVE_INDEX0,X
+	STA &B8
+	LDA DRIVE_INDEX4,X
+	MASK_DISKNO
+	STA &B9
 
 	\\ &B8 = disk no
 	\\ On exit; A=disk status byte
