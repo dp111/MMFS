@@ -10,11 +10,7 @@
 	JSR Sub_AAEA_StackAZero		; Change value of A in stack to 0?
 	LDA #&0F
 	STA &AA
-	JSR RememberXYonly
-	LDA #&AA			; ROM information table @ XY
-	JSR osbyte_X0YFF
-	STX &B4
-	STY &B5
+	JSR Sub_AADD_RomTablePtrBA
 	SEC
 	JSR GSINIT
 	STY &AB
@@ -41,13 +37,19 @@ ENDIF
 
 .Label_A9FF_notnum
 	ROR &A8				; Loop through roms
-{
 .Label_AA01_loop
 	BIT &A8
 	BPL Label_AA0A
+	JSR Sub_AA12_titlecmp		; Match title with parameter
+	BCC Label_AA0D_nomatch
+.Label_AA0A
+	JSR Label_AA53_RomInfo
+.Label_AA0D_nomatch
+	DEC &AA
+	BPL Label_AA01_loop
+	RTS
 
-	; Match title with parameter
-
+.Sub_AA12_titlecmp
 	LDA #&09			; wF6=&8009 = title
 	STA &F6
 	LDA #&80
@@ -65,14 +67,16 @@ ENDIF
 	JSR UcaseA2
 	STA &AE
 	JSR Sub_AACF_ReadRom
-	BEQ Label_AA0D_nomatch
+	BEQ Label_AA42_nomatch
 	LDX &AE
 	CPX #&23			; "#"
 	BEQ Label_AA1C_loop
 	JSR UcaseA2
 	CMP &AE
 	BEQ Label_AA1C_loop
-	BNE Label_AA0D_nomatch
+.Label_AA42_nomatch
+	CLC
+	RTS
 
 .Label_AA44
 	JSR Sub_AACF_ReadRom
@@ -80,22 +84,15 @@ ENDIF
 	CMP #&20
 	BEQ Label_AA44			; If =" "   skip spaces
 	CMP #&0D
-	BNE Label_AA0D_nomatch		; If <>CR
+	BNE Label_AA42_nomatch		; If <>CR
 .Label_AA51_match
-
-.Label_AA0A
-	JSR Label_AA53_RomInfo
-.Label_AA0D_nomatch
-	DEC &AA
-	BPL Label_AA01_loop
+	SEC
 	RTS
-}
 
 .Label_AA53_RomInfo
-{
 	LDY &AA				; Y=Rom nr
 	LDA (&B4),Y
-	BEQ exitrts		; If RomTable(Y)=0
+	BEQ Label_AA42_nomatch		; If RomTable(Y)=0
 	PHA
 	JSR PrintString
 	EQUS "Rom "
@@ -126,7 +123,12 @@ ENDIF
 	LDA #&29			; A=")"
 	JSR PrintChrA
 	JSR PrintSpaceSPL
+	JSR Label_AA9A_PrtRomTitle
+	JSR PrintNewLine
+	SEC
+	RTS
 
+.Label_AA9A_PrtRomTitle
 	LDA #&07			; Print ROM title
 	STA &F6
 	LDA #&80
@@ -136,9 +138,10 @@ ENDIF
 	INC &F6				; wF6=&8009
 	LDY #&1E
 	JSR Sub_AAC2_PrintRomStr
-	BCS spare_rts		; If reached copyright offset
-	JSR PrintSpaceSPL	; C=0 on exit
-	BCC	DEY_Sub_AAC2_PrintRomStr
+	BCS Label_AACE_rts		; If reached copyright offset
+	JSR PrintSpaceSPL		; C=0 on exit
+	BCC DEY_Sub_AAC2_PrintRomStr ; always jump
+
 
 .Label_AAB8_loop
 	CMP #&20
@@ -154,15 +157,9 @@ ENDIF
 	BCS Label_AACE_rts		; If >=
 	JSR Sub_AACF_ReadRom
 	BNE Label_AAB8_loop
-	;CLC 					; C=0=Terminator
-.spare_rts
+	CLC 				; C=0=Terminator
 .Label_AACE_rts
-
-	JSR PrintNewLine
-	;SEC
-.exitrts
 	RTS
-}
 
 .Sub_AACF_ReadRom
 	TYA 				; Read byte from ROM
@@ -174,6 +171,14 @@ ENDIF
 	PLA
 	TAY
 	TXA
+	RTS
+
+.Sub_AADD_RomTablePtrBA
+	JSR RememberXYonly
+	LDA #&AA			; ROM information table @ XY
+	JSR osbyte_X0YFF
+	STX &B4
+	STY &B5
 	RTS
 
 .Sub_AAEA_StackAZero
