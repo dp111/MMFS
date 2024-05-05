@@ -41,22 +41,13 @@ ENDIF
 
 .Label_A9FF_notnum
 	ROR &A8				; Loop through roms
+{
 .Label_AA01_loop
 	BIT &A8
 	BPL Label_AA0A
 
-	JSR Sub_AA12_titlecmp		; Match title with parameter
+	; Match title with parameter
 
-
-	BCC Label_AA0D_nomatch
-.Label_AA0A
-	JSR Label_AA53_RomInfo
-.Label_AA0D_nomatch
-	DEC &AA
-	BPL Label_AA01_loop
-	RTS
-
-.Sub_AA12_titlecmp
 	LDA #&09			; wF6=&8009 = title
 	STA &F6
 	LDA #&80
@@ -74,16 +65,14 @@ ENDIF
 	JSR UcaseA2
 	STA &AE
 	JSR Sub_AACF_ReadRom
-	BEQ Label_AA42_nomatch
+	BEQ Label_AA0D_nomatch
 	LDX &AE
 	CPX #&23			; "#"
 	BEQ Label_AA1C_loop
 	JSR UcaseA2
 	CMP &AE
 	BEQ Label_AA1C_loop
-.Label_AA42_nomatch
-	CLC
-	RTS
+	BNE Label_AA0D_nomatch
 
 .Label_AA44
 	JSR Sub_AACF_ReadRom
@@ -91,10 +80,16 @@ ENDIF
 	CMP #&20
 	BEQ Label_AA44			; If =" "   skip spaces
 	CMP #&0D
-	BNE Label_AA42_nomatch		; If <>CR
+	BNE Label_AA0D_nomatch		; If <>CR
 .Label_AA51_match
-	SEC
+
+.Label_AA0A
+	JSR Label_AA53_RomInfo
+.Label_AA0D_nomatch
+	DEC &AA
+	BPL Label_AA01_loop
 	RTS
+}
 
 .Label_AA53_RomInfo
 {
