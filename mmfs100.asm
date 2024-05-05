@@ -3436,17 +3436,8 @@ ENDIF
 	CPY #&7D
 	BCC exit			; Y < &7D
 
-	; MMFS current fs?
-
-	\ Test if MMFS by checking OSFILE vector.
-	LDA &213			; Check of the low OSFILE vector is pointing
-	CMP #&FF            ; to the corresponding extended vector.
-	BNE notMMFS
-	LDA &212
-	CMP #&1B
-	BNE notMMFS
-	LDA &0DBC			; Rom number in extended vector.
-	CMP &F4				; Is it our ROM?
+	JSR FSisMMFS			; MMFS current fs?
+	BNE exit
 
 	JSR ReturnWithA0
 
@@ -3463,8 +3454,6 @@ ENDIF
 	CLI
 	JSR Osword7F_8271_Emulation	; OSWORD &7F 8271 emulation
 	PLP
-.notMMFS
-.exit
 	RTS
 
 .notOSWORD7F
@@ -3475,7 +3464,7 @@ ENDIF
 	LDY #&00			; OSWORD &7D return cycle no.
 	LDA MA+&0F04
 	STA (&B0),Y
-	RTS
+.exit	RTS
 
 .OSWORD7E
 	LDA #&00			; OSWORD &7E
@@ -3603,7 +3592,20 @@ IF _MASTER_
 }
 ENDIF	; End of MASTER ONLY service calls
 
-
+	\ Test if MMFS by checking OSFILE vector.
+.FSisMMFS
+{
+	LDA &213			; Check of the low OSFILE vector is pointing
+	CMP #&FF            ; to the corresponding extended vector.
+	BNE notMMFS
+	LDA &212
+	CMP #&1B
+	BNE notMMFS
+	LDA &0DBC			; Rom number in extended vector.
+	CMP &F4				; Is it our ROM?
+.notMMFS
+	RTS
+}
 
 
 .FILEV_ENTRY
