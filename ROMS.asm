@@ -44,7 +44,10 @@ ENDIF
 .Label_AA01_loop
 	BIT &A8
 	BPL Label_AA0A
+
 	JSR Sub_AA12_titlecmp		; Match title with parameter
+
+
 	BCC Label_AA0D_nomatch
 .Label_AA0A
 	JSR Label_AA53_RomInfo
@@ -97,7 +100,7 @@ ENDIF
 {
 	LDY &AA				; Y=Rom nr
 	LDA (&B4),Y
-	BEQ Label_AA42_nomatch		; If RomTable(Y)=0
+	BEQ exitrts		; If RomTable(Y)=0
 	PHA
 	JSR PrintString
 	EQUS "Rom "
@@ -162,6 +165,7 @@ ENDIF
 
 	JSR PrintNewLine
 	;SEC
+.exitrts
 	RTS
 }
 
