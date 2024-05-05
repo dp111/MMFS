@@ -94,6 +94,7 @@ ENDIF
 	RTS
 
 .Label_AA53_RomInfo
+{
 	LDY &AA				; Y=Rom nr
 	LDA (&B4),Y
 	BEQ Label_AA42_nomatch		; If RomTable(Y)=0
@@ -155,13 +156,14 @@ ENDIF
 	BCS Label_AACE_rts		; If >=
 	JSR Sub_AACF_ReadRom
 	BNE Label_AAB8_loop
-	CLC 					; C=0=Terminator
+	;CLC 					; C=0=Terminator
 .spare_rts
 .Label_AACE_rts
 
 	JSR PrintNewLine
-	SEC
+	;SEC
 	RTS
+}
 
 .Sub_AACF_ReadRom
 	TYA 				; Read byte from ROM
