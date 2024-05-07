@@ -3,18 +3,6 @@
 \** June/July 2011
 
 	\ ****** START OF UTILITIES *****
-.Utils_SetBufPtr
-IF _SWRAM_
-	LDA #UTILSBUF
-	STA &AD
-ELSE
-	LDX PagedRomSelector_RAMCopy
-	LDA PagedROM_PrivWorkspaces,X	; Word AC -> 2nd PWSP Page
-	AND #&3F			; Bits 7 & 6 are flags
-	STA &AD
-	INC &AD
-ENDIF
-	RTS
 
 .CMD_DUMP
 {	LDA #&40; Open file for input
@@ -151,41 +139,80 @@ ENDIF
 
 .CMD_BUILD
 {
+	flength = &AA
 	LDA #&80			; Open file for OUTPUT only
 	JSR Utils_FilenameAtXY		; XY points to filename
-	STA &AB	;File handle
-.build_loop1
-	JSR Utils_PrintLineNo		; Line number prompt:
-								; Build Osword control block @ AC
-	JSR Utils_SetBufPtr		; Normally ?AD=&18
-	LDX #&AC			; Osword ptr YX=&00AC
-	LDY #&FF
-	STY &AE				; Max length = 256
-	STY &B0
-	INY
-	STY &AC				; So word AC=&1800 (normally)
-	LDA #&20
-	STA &AF				; min ASCII value accepted
-	TYA 				; max value???
-	JSR OSWORD			; OSWORD 0, YX=&00AC
-	PHP 				; Read line from input
-	STY &AA				; Y=line length
-	LDY &AB				; Y=file handle
-	LDX #&00
-	BEQ build_loop2entry		; always
-.build_loop2
-	LDA (&AC,X)			; Output line to file
+	; Y is file handle
+	LDX #5
+	LDA #0
+.clearloop
+	STA &A8,X		; start at line number and move one to flength
+	DEX
+	BPL clearloop
+
+.loop_newline
+	JSR Utils_PrintLineNo
+	LDX #0
+.loop_line
+	JSR OSRDCH
+	BCS builddone
+	CMP #21 : BEQ clearline
+	CMP #127 : BEQ subpointer
+	JSR OSASCI
 	JSR OSBPUT
-	INC &AC
-.build_loop2entry
-	LDA &AC
-	CMP &AA
-	BNE build_loop2
-	PLP
-	BCS Utils_ESCAPE_CloseFileY	; Escape pressed so exit
-	LDA #&0D			; Carriage return
-	JSR OSBPUT
-	JMP build_loop1
+	INX
+	; inc filepointer
+	INC flength+0
+	BNE fpincdone
+	INC flength+1
+	BNE fpincdone
+	INC flength+2
+.fpincdone
+	CMP #13
+	BNE loop_line
+	BEQ loop_newline
+
+.clearline
+	JSR fpdec
+	BNE clearline
+	BEQ loop_line
+.subpointer
+	JSR fpdec
+	JMP loop_line
+
+.fpdec
+	TXA
+	BEQ fpdecrts
+	LDA #127
+	JSR OSWRCH
+	LDA flength+0
+	BNE declsb
+	LDA flength+1
+	BNE decmsb
+	DEC flength+2
+.decmsb
+	DEC flength+1
+.declsb
+	DEC flength+0
+
+.fpdecdone
+	TXA
+	PHA
+	LDA #1	; set file ptr length
+	LDX #flength+0
+	JSR OSARGS
+	PLA
+	TAX
+	DEX
+.fpdecrts
+	RTS
+
+.builddone
+	; OSARGS 3 to set the length
+	LDA #3	; set file length
+	LDX #flength+0
+	JSR OSARGS
+	JMP Utils_ESCAPE_CloseFileY
 }
 
 .Utils_FilenameAtXY
@@ -223,18 +250,6 @@ ENDIF
 
 .utils_filenotfound
 	JMP err_FILENOTFOUND
-
-;;.Utils_TextPointerAddY
-;;{
-;;	TYA 				; TextPointer += Y
-;;	CLC 				; (Where is this used?)
-;;	ADC TextPointer
-;;	STA TextPointer
-;;	BCC utils_tpexit
-;;	INC TextPointer
-;;.utils_tpexit
-;;	RTS
-;;}
 
 .Utils_PrintLineNo
 	LDX #&A8
